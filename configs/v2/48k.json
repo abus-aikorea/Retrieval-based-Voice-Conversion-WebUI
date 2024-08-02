@@ -26,9 +26,9 @@
     "mel_fmax": 8000.0        
   },
   "model": {
-    "inter_channels": 256,    
-    "hidden_channels": 256,   
-    "filter_channels": 1024,  
+    "inter_channels": 192,
+    "hidden_channels": 192,
+    "filter_channels": 768,
     "n_heads": 4,             
     "n_layers": 8,            
     "kernel_size": 3,         
