@@ -113,6 +113,7 @@ class TextAudioLoaderMultiNSFsid(torch.utils.data.Dataset):
             try:
                 spec = torch.load(spec_filename)
             except:
+                print(f'get_audio exception: torch.load - {spec_filename}')
                 logger.warning("%s %s", spec_filename, traceback.format_exc())
                 spec = spectrogram_torch(
                     audio_norm,
