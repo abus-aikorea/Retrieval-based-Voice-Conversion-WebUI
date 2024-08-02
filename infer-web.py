@@ -38,7 +38,9 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
 
-tmp = os.path.join(now_dir, "TEMP")
+# tmp = os.path.join(now_dir, "TEMP")
+tmp = os.path.join("/tmp/RVC", "TEMP")
+
 shutil.rmtree(tmp, ignore_errors=True)
 shutil.rmtree("%s/runtime/Lib/site-packages/infer_pack" % (now_dir), ignore_errors=True)
 shutil.rmtree("%s/runtime/Lib/site-packages/uvr5_pack" % (now_dir), ignore_errors=True)
@@ -1292,7 +1294,7 @@ with gr.Blocks(title="RVC WebUI") as app:
                 with gr.Row():
                     save_epoch10 = gr.Slider(
                         minimum=1,
-                        maximum=50,
+                        maximum=500,     # ABUS
                         step=1,
                         label=i18n("保存频率save_every_epoch"),
                         value=5,
@@ -1300,7 +1302,7 @@ with gr.Blocks(title="RVC WebUI") as app:
                     )
                     total_epoch11 = gr.Slider(
                         minimum=2,
-                        maximum=1000,
+                        maximum=50000,  # ABUS
                         step=1,
                         label=i18n("总训练轮数total_epoch"),
                         value=20,
@@ -1308,7 +1310,7 @@ with gr.Blocks(title="RVC WebUI") as app:
                     )
                     batch_size12 = gr.Slider(
                         minimum=1,
-                        maximum=40,
+                        maximum=100,        # ABUS
                         step=1,
                         label=i18n("每张显卡的batch_size"),
                         value=default_batch_size,
