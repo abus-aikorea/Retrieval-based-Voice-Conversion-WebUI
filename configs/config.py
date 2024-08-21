@@ -77,7 +77,7 @@ class Config:
     def arg_parse() -> tuple:
         exe = sys.executable or "python"
         parser = argparse.ArgumentParser()
-        parser.add_argument("--port", type=int, default=7865, help="Listen port")
+        parser.add_argument("--port", type=int, default=7979, help="Listen port")
         parser.add_argument("--pycmd", type=str, default=exe, help="Python command")
         parser.add_argument("--colab", action="store_true", help="Launch in colab")
         parser.add_argument(
@@ -95,7 +95,7 @@ class Config:
         )
         cmd_opts = parser.parse_args()
 
-        cmd_opts.port = cmd_opts.port if 0 <= cmd_opts.port <= 65535 else 7865
+        cmd_opts.port = cmd_opts.port if 0 <= cmd_opts.port <= 65535 else 7979
 
         return (
             cmd_opts.pycmd,

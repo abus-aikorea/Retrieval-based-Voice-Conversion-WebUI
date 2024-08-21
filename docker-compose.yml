@@ -10,7 +10,7 @@ services:
       - ./opt:/app/opt
       # - ./dataset:/app/dataset # you can use this folder in order to provide your dataset for model training
     ports:
-      - 7865:7865
+      - 7979:7979
     deploy:
       resources:
         reservations:
