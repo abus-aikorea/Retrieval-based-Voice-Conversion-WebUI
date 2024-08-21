@@ -38,9 +38,9 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
 
-# tmp = os.path.join(now_dir, "TEMP")
-tmp = os.path.join("/tmp/RVC", "TEMP")
 
+tmp = os.path.join("/tmp/RVC", "TEMP") if sys.platform.startswith('linux') else os.path.join(os.getcwd(), "TEMP")
+    
 shutil.rmtree(tmp, ignore_errors=True)
 shutil.rmtree("%s/runtime/Lib/site-packages/infer_pack" % (now_dir), ignore_errors=True)
 shutil.rmtree("%s/runtime/Lib/site-packages/uvr5_pack" % (now_dir), ignore_errors=True)
@@ -1181,13 +1181,13 @@ with gr.Blocks(title="RVC WebUI") as app:
                 sr2 = gr.Radio(
                     label=i18n("目标采样率"),
                     choices=["40k", "48k"],
-                    value="40k",
+                    value="48k",
                     interactive=True,
                 )
                 if_f0_3 = gr.Radio(
                     label=i18n("模型是否带音高指导(唱歌一定要, 语音可以不要)"),
                     choices=[True, False],
-                    value=True,
+                    value=False,
                     interactive=True,
                 )
                 version19 = gr.Radio(
@@ -1294,10 +1294,10 @@ with gr.Blocks(title="RVC WebUI") as app:
                 with gr.Row():
                     save_epoch10 = gr.Slider(
                         minimum=1,
-                        maximum=500,     # ABUS
+                        maximum=1000,     # ABUS
                         step=1,
                         label=i18n("保存频率save_every_epoch"),
-                        value=5,
+                        value=500,
                         interactive=True,
                     )
                     total_epoch11 = gr.Slider(
@@ -1305,7 +1305,7 @@ with gr.Blocks(title="RVC WebUI") as app:
                         maximum=50000,  # ABUS
                         step=1,
                         label=i18n("总训练轮数total_epoch"),
-                        value=20,
+                        value=40000,
                         interactive=True,
                     )
                     batch_size12 = gr.Slider(
@@ -1319,7 +1319,7 @@ with gr.Blocks(title="RVC WebUI") as app:
                     if_save_latest13 = gr.Radio(
                         label=i18n("是否仅保存最新的ckpt文件以节省硬盘空间"),
                         choices=[i18n("是"), i18n("否")],
-                        value=i18n("否"),
+                        value=i18n("是"),
                         interactive=True,
                     )
                     if_cache_gpu17 = gr.Radio(
@@ -1335,18 +1335,18 @@ with gr.Blocks(title="RVC WebUI") as app:
                             "是否在每次保存时间点将最终小模型保存至weights文件夹"
                         ),
                         choices=[i18n("是"), i18n("否")],
-                        value=i18n("否"),
+                        value=i18n("是"),
                         interactive=True,
                     )
                 with gr.Row():
                     pretrained_G14 = gr.Textbox(
                         label=i18n("加载预训练底模G路径"),
-                        value="assets/pretrained_v2/f0G40k.pth",
+                        value="assets/pretrained_v2/G48k.pth",
                         interactive=True,
                     )
                     pretrained_D15 = gr.Textbox(
                         label=i18n("加载预训练底模D路径"),
-                        value="assets/pretrained_v2/f0D40k.pth",
+                        value="assets/pretrained_v2/D48k.pth",
                         interactive=True,
                     )
                     sr2.change(
