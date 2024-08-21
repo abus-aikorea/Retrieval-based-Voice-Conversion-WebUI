@@ -1,9 +1,9 @@
 {
   "train": {
     "log_interval": 1000,   
-    "seed": 1234,
+    "seed": 4321,
     "epochs": 50000,        
-    "learning_rate": 1e-7,  
+    "learning_rate": 1e-6,  
     "betas": [0.8, 0.99],
     "eps": 1e-9,
     "batch_size": 4,
@@ -11,9 +11,9 @@
     "lr_decay": 0.9999,     
     "segment_size": 17280,
     "init_lr_ratio": 1,
-    "warmup_epochs": 100,   
-    "c_mel": 45,
-    "c_kl": 1.0             
+    "warmup_epochs": 50,   
+    "c_mel": 35,
+    "c_kl": 1.5             
   },
   "data": {
     "max_wav_value": 32768.0,
@@ -32,7 +32,7 @@
     "n_heads": 2,
     "n_layers": 6,
     "kernel_size": 3,    
-    "p_dropout": 0,         
+    "p_dropout": 0.6,         
     "resblock": "1",
     "resblock_kernel_sizes": [3,7,11],
     "resblock_dilation_sizes": [[1,3,5], [1,3,5], [1,3,5]],
