@@ -66,11 +66,14 @@ class Config:
     def load_config_json() -> dict:
         d = {}
         for config_file in version_config_list:
-            p = f"configs/inuse/{config_file}"
-            if not os.path.exists(p):
-                shutil.copy(f"configs/{config_file}", p)
-            with open(f"configs/inuse/{config_file}", "r") as f:
-                d[config_file] = json.load(f)
+            # p = f"configs/inuse/{config_file}"
+            # if not os.path.exists(p):
+            #     shutil.copy(f"configs/{config_file}", p)
+            # with open(f"configs/inuse/{config_file}", "r") as f:
+            #     d[config_file] = json.load(f)
+            
+            with open(f"configs/{config_file}", "r") as f:
+                d[config_file] = json.load(f)            
         return d
 
     @staticmethod

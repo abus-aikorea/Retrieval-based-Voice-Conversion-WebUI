@@ -816,7 +816,7 @@ with gr.Blocks(title="RVC WebUI") as app:
         )
     )
     with gr.Tabs():
-        with gr.TabItem(i18n("模型推理")):
+        with gr.TabItem(i18n("模型推理")):  # Model Inference
             with gr.Row():
                 sid0 = gr.Dropdown(label=i18n("推理音色"), choices=sorted(names))
                 with gr.Column():
@@ -836,7 +836,7 @@ with gr.Blocks(title="RVC WebUI") as app:
                 clean_button.click(
                     fn=clean, inputs=[], outputs=[sid0], api_name="infer_clean"
                 )
-            with gr.TabItem(i18n("单次推理")):
+            with gr.TabItem(i18n("单次推理")):  # Single Inference
                 with gr.Group():
                     with gr.Row():
                         with gr.Column():
@@ -967,7 +967,7 @@ with gr.Blocks(title="RVC WebUI") as app:
                             [vc_output1, vc_output2],
                             api_name="infer_convert",
                         )
-            with gr.TabItem(i18n("批量推理")):
+            with gr.TabItem(i18n("批量推理")):      # Batch Inference
                 gr.Markdown(
                     value=i18n(
                         "批量转换, 输入待转换音频文件夹, 或上传多个音频文件, 在指定文件夹(默认opt)下输出转换的音频. "
@@ -1112,7 +1112,7 @@ with gr.Blocks(title="RVC WebUI") as app:
                     outputs=[spk_item, protect0, protect1, file_index2, file_index4],
                     api_name="infer_change_voice",
                 )
-        with gr.TabItem(i18n("伴奏人声分离&去混响&去回声")):
+        with gr.TabItem(i18n("伴奏人声分离&去混响&去回声")):    # Vocals/Accompaniment Separation & Reverberation Removal
             with gr.Group():
                 gr.Markdown(
                     value=i18n(
@@ -1170,14 +1170,14 @@ with gr.Blocks(title="RVC WebUI") as app:
                         [vc_output4],
                         api_name="uvr_convert",
                     )
-        with gr.TabItem(i18n("训练")):
+        with gr.TabItem(i18n("训练")):      # Train
             gr.Markdown(
                 value=i18n(
                     "step1: 填写实验配置. 实验数据放在logs下, 每个实验一个文件夹, 需手工输入实验名路径, 内含实验配置, 日志, 训练得到的模型文件. "
                 )
             )
             with gr.Row():
-                exp_dir1 = gr.Textbox(label=i18n("输入实验名"), value="mi-test")
+                exp_dir1 = gr.Textbox(label=i18n("输入实验名"), value="ABC-0827-VPN12")
                 sr2 = gr.Radio(
                     label=i18n("目标采样率"),
                     choices=["40k", "48k"],
@@ -1185,9 +1185,9 @@ with gr.Blocks(title="RVC WebUI") as app:
                     interactive=True,
                 )
                 if_f0_3 = gr.Radio(
-                    label=i18n("模型是否带音高指导(唱歌一定要, 语音可以不要)"),
+                    label=i18n("模型是否带音高指导(唱歌一定要, 语音可以不要)"), # "Whether the model has pitch guidance (required for singing, optional for speech):
                     choices=[True, False],
-                    value=False,
+                    value=True,
                     interactive=True,
                 )
                 version19 = gr.Radio(
@@ -1294,10 +1294,10 @@ with gr.Blocks(title="RVC WebUI") as app:
                 with gr.Row():
                     save_epoch10 = gr.Slider(
                         minimum=1,
-                        maximum=1000,     # ABUS
+                        maximum=5000,     # ABUS
                         step=1,
                         label=i18n("保存频率save_every_epoch"),
-                        value=500,
+                        value=1000,
                         interactive=True,
                     )
                     total_epoch11 = gr.Slider(
@@ -1340,13 +1340,13 @@ with gr.Blocks(title="RVC WebUI") as app:
                     )
                 with gr.Row():
                     pretrained_G14 = gr.Textbox(
-                        label=i18n("加载预训练底模G路径"),
-                        value="assets/pretrained_v2/G48k.pth",
+                        label=i18n("加载预训练底模G路径"),      # Load pre-trained base model G path:
+                        value="assets/pretrained_v2/f0G48k.pth",
                         interactive=True,
                     )
                     pretrained_D15 = gr.Textbox(
-                        label=i18n("加载预训练底模D路径"),
-                        value="assets/pretrained_v2/D48k.pth",
+                        label=i18n("加载预训练底模D路径"),      # Load pre-trained base model D path:
+                        value="assets/pretrained_v2/f0D48k.pth",
                         interactive=True,
                     )
                     sr2.change(
@@ -1423,7 +1423,7 @@ with gr.Blocks(title="RVC WebUI") as app:
                         api_name="train_start_all",
                     )
 
-        with gr.TabItem(i18n("ckpt处理")):
+        with gr.TabItem(i18n("ckpt处理")):      # Model architecture version:
             with gr.Group():
                 gr.Markdown(value=i18n("模型融合, 可用于测试音色融合"))
                 with gr.Row():
@@ -1442,9 +1442,9 @@ with gr.Blocks(title="RVC WebUI") as app:
                     )
                 with gr.Row():
                     sr_ = gr.Radio(
-                        label=i18n("目标采样率"),
+                        label=i18n("目标采样率"),   # Target sample rate
                         choices=["40k", "48k"],
-                        value="40k",
+                        value="48k",
                         interactive=True,
                     )
                     if_f0_ = gr.Radio(
@@ -1468,7 +1468,7 @@ with gr.Blocks(title="RVC WebUI") as app:
                     version_2 = gr.Radio(
                         label=i18n("模型版本型号"),
                         choices=["v1", "v2"],
-                        value="v1",
+                        value="v2",
                         interactive=True,
                     )
                 with gr.Row():
