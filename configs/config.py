@@ -129,13 +129,13 @@ class Config:
             return False
 
     def use_fp32_config(self):
-        for config_file in version_config_list:
-            self.json_config[config_file]["train"]["fp16_run"] = False
-            with open(f"configs/inuse/{config_file}", "r") as f:
-                strr = f.read().replace("true", "false")
-            with open(f"configs/inuse/{config_file}", "w") as f:
-                f.write(strr)
-            logger.info("overwrite " + config_file)
+        # for config_file in version_config_list:
+        #     self.json_config[config_file]["train"]["fp16_run"] = False
+        #     with open(f"configs/inuse/{config_file}", "r") as f:
+        #         strr = f.read().replace("true", "false")
+        #     with open(f"configs/inuse/{config_file}", "w") as f:
+        #         f.write(strr)
+        #     logger.info("overwrite " + config_file)
         self.preprocess_per = 3.0
         logger.info("overwrite preprocess_per to %d" % (self.preprocess_per))
 
