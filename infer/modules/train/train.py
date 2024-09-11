@@ -253,20 +253,40 @@ def run(rank, n_gpus, hps, logger: logging.Logger):
                         torch.load(hps.pretrainD, map_location="cpu")["model"]
                     )
                 )
+    # ABUS
+    # scheduler_g = torch.optim.lr_scheduler.ExponentialLR(
+    #     optim_g, gamma=hps.train.lr_decay, last_epoch=epoch_str - 2
+    # )
+    # scheduler_d = torch.optim.lr_scheduler.ExponentialLR(
+    #     optim_d, gamma=hps.train.lr_decay, last_epoch=epoch_str - 2
+    # )
+    
+    scheduler_g = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optim_g,
+        mode='min',
+        factor=0.5,
+        patience=5,
+        verbose=True
+    )
 
-    scheduler_g = torch.optim.lr_scheduler.ExponentialLR(
-        optim_g, gamma=hps.train.lr_decay, last_epoch=epoch_str - 2
-    )
-    scheduler_d = torch.optim.lr_scheduler.ExponentialLR(
-        optim_d, gamma=hps.train.lr_decay, last_epoch=epoch_str - 2
-    )
+    # Discriminator scheduler
+    scheduler_d = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optim_d,
+        mode='min',
+        factor=0.5,
+        patience=5,
+        verbose=True
+    )    
+    
+    
+    
 
     scaler = GradScaler(enabled=hps.train.fp16_run)
 
     cache = []
     for epoch in range(epoch_str, hps.train.epochs + 1):
         if rank == 0:
-            train_and_evaluate(
+            loss_disc, loss_gen = train_and_evaluate(
                 rank,
                 epoch,
                 hps,
@@ -280,7 +300,7 @@ def run(rank, n_gpus, hps, logger: logging.Logger):
                 cache,
             )
         else:
-            train_and_evaluate(
+            loss_disc, loss_gen = train_and_evaluate(
                 rank,
                 epoch,
                 hps,
@@ -293,8 +313,10 @@ def run(rank, n_gpus, hps, logger: logging.Logger):
                 None,
                 cache,
             )
-        scheduler_g.step()
-        scheduler_d.step()
+        
+        # ABUS    
+        scheduler_g.step(loss_gen)
+        scheduler_d.step(loss_disc)
 
 
 def train_and_evaluate(
@@ -617,6 +639,10 @@ def train_and_evaluate(
 
     if rank == 0:
         logger.info("====> Epoch: {} {}".format(epoch, epoch_recorder.record()))
+        return loss_disc, loss_gen      # ABUS
+        
+        
+        
     if epoch >= hps.total_epoch and rank == 0:
         logger.info("Training is done. The program is closed.")
 
