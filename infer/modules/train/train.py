@@ -286,7 +286,7 @@ def run(rank, n_gpus, hps, logger: logging.Logger):
     cache = []
     for epoch in range(epoch_str, hps.train.epochs + 1):
         if rank == 0:
-            loss_disc, loss_gen = train_and_evaluate(
+            loss_disc, loss_gen_all = train_and_evaluate(
                 rank,
                 epoch,
                 hps,
@@ -300,7 +300,7 @@ def run(rank, n_gpus, hps, logger: logging.Logger):
                 cache,
             )
         else:
-            loss_disc, loss_gen = train_and_evaluate(
+            loss_disc, loss_gen_all = train_and_evaluate(
                 rank,
                 epoch,
                 hps,
@@ -315,7 +315,7 @@ def run(rank, n_gpus, hps, logger: logging.Logger):
             )
         
         # ABUS    
-        scheduler_g.step(loss_gen)
+        scheduler_g.step(loss_gen_all)
         scheduler_d.step(loss_disc)
 
 
@@ -639,7 +639,7 @@ def train_and_evaluate(
 
     if rank == 0:
         logger.info("====> Epoch: {} {}".format(epoch, epoch_recorder.record()))
-        return loss_disc, loss_gen      # ABUS
+        return loss_disc, loss_gen_all      # ABUS
         
         
         

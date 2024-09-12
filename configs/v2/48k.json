@@ -3,7 +3,7 @@
     "log_interval": 1000,   
     "seed": 1234,
     "epochs": 50000,        
-    "learning_rate": 1e-6,  
+    "learning_rate": 1e-7,  
     "betas": [0.8, 0.99],
     "eps": 1e-9,
     "batch_size": 4,
@@ -11,9 +11,9 @@
     "lr_decay": 0.999,     
     "segment_size": 17280,
     "init_lr_ratio": 1,
-    "warmup_epochs": 100,   
-    "c_mel": 20,
-    "c_kl": 6.0             
+    "warmup_epochs": 500,   
+    "c_mel": 45,
+    "c_kl": 1.0             
   },
   "data": {
     "max_wav_value": 32768.0,
