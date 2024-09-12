@@ -639,9 +639,6 @@ def train_and_evaluate(
 
     if rank == 0:
         logger.info("====> Epoch: {} {}".format(epoch, epoch_recorder.record()))
-        return loss_disc, loss_gen_all      # ABUS
-        
-        
         
     if epoch >= hps.total_epoch and rank == 0:
         logger.info("Training is done. The program is closed.")
@@ -660,6 +657,9 @@ def train_and_evaluate(
         )
         sleep(1)
         os._exit(2333333)
+        
+        
+    return loss_disc, loss_gen_all      # ABUS
 
 
 if __name__ == "__main__":
