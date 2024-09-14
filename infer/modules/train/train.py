@@ -79,6 +79,25 @@ from infer.lib.train.process_ckpt import savee
 global_step = 0
 
 
+# Helper class for moving average calculation
+class MovingAverage:
+    def __init__(self, window_size):
+        self.window_size = window_size
+        self.values = []
+        self.sum = 0
+
+    def update(self, value):
+        self.values.append(value)
+        self.sum += value
+        if len(self.values) > self.window_size:
+            self.sum -= self.values.pop(0)
+
+    @property
+    def avg(self):
+        return self.sum / len(self.values) if self.values else 0
+
+
+
 class EpochRecorder:
     def __init__(self):
         self.last_time = ttime()
@@ -286,7 +305,7 @@ def run(rank, n_gpus, hps, logger: logging.Logger):
     cache = []
     for epoch in range(epoch_str, hps.train.epochs + 1):
         if rank == 0:
-            loss_disc, loss_gen_all = train_and_evaluate(
+            loss_disc_avg, loss_gen_avg = train_and_evaluate(
                 rank,
                 epoch,
                 hps,
@@ -300,7 +319,7 @@ def run(rank, n_gpus, hps, logger: logging.Logger):
                 cache,
             )
         else:
-            loss_disc, loss_gen_all = train_and_evaluate(
+            loss_disc_avg, loss_gen_avg = train_and_evaluate(
                 rank,
                 epoch,
                 hps,
@@ -315,8 +334,8 @@ def run(rank, n_gpus, hps, logger: logging.Logger):
             )
         
         # ABUS    
-        scheduler_g.step(loss_gen_all)
-        scheduler_d.step(loss_disc)
+        scheduler_g.step(loss_gen_avg)
+        scheduler_d.step(loss_disc_avg)
 
 
 def train_and_evaluate(
@@ -418,6 +437,9 @@ def train_and_evaluate(
 
     # Run steps
     epoch_recorder = EpochRecorder()
+    moving_avg_loss_gen = MovingAverage(window_size=100)
+    moving_avg_loss_disc = MovingAverage(window_size=100)    
+    
     for batch_idx, info in data_iterator:
         # Data
         ## Unpack
@@ -500,11 +522,26 @@ def train_and_evaluate(
                 loss_disc, losses_disc_r, losses_disc_g = discriminator_loss(
                     y_d_hat_r, y_d_hat_g
                 )
+            
+            # Gradient accumulation for larger effective batch size - ABUS
+            accumulation_steps = n_gpus  # Adjust this value based on your GPU memory
+            loss_disc = loss_disc / accumulation_steps
+            loss_gen_all = loss_gen_all / accumulation_steps
+                
+        # Discriminator update - ABUS        
         optim_d.zero_grad()
         scaler.scale(loss_disc).backward()
-        scaler.unscale_(optim_d)
-        grad_norm_d = commons.clip_grad_value_(net_d.parameters(), None)
-        scaler.step(optim_d)
+        
+        if (batch_idx + 1) % accumulation_steps == 0:
+            scaler.unscale_(optim_d)
+            grad_norm_d = commons.clip_grad_value_(net_d.parameters(), max_norm=1.0)
+            scaler.step(optim_d)
+            scaler.update()        
+            
+        # scaler.unscale_(optim_d)
+        # grad_norm_d = commons.clip_grad_value_(net_d.parameters(), None)
+        # scaler.step(optim_d)
+        
 
         with autocast(enabled=hps.train.fp16_run):
             # Generator
@@ -515,12 +552,26 @@ def train_and_evaluate(
                 loss_fm = feature_loss(fmap_r, fmap_g)
                 loss_gen, losses_gen = generator_loss(y_d_hat_g)
                 loss_gen_all = loss_gen + loss_fm + loss_mel + loss_kl
+        
+        # Generator update - ABUS
         optim_g.zero_grad()
         scaler.scale(loss_gen_all).backward()
-        scaler.unscale_(optim_g)
-        grad_norm_g = commons.clip_grad_value_(net_g.parameters(), None)
-        scaler.step(optim_g)
-        scaler.update()
+        
+        if (batch_idx + 1) % accumulation_steps == 0:
+            scaler.unscale_(optim_g)
+            grad_norm_g = commons.clip_grad_value_(net_g.parameters(), max_norm=1.0)
+            scaler.step(optim_g)
+            scaler.update()            
+        
+        # scaler.unscale_(optim_g)
+        # grad_norm_g = commons.clip_grad_value_(net_g.parameters(), None)
+        # scaler.step(optim_g)
+        # scaler.update()
+        
+        # Update moving averages
+        moving_avg_loss_disc.update(loss_disc.item())
+        moving_avg_loss_gen.update(loss_gen_all.item())    
+                
 
         if rank == 0:
             if global_step % hps.train.log_interval == 0:
@@ -530,16 +581,25 @@ def train_and_evaluate(
                         epoch, 100.0 * batch_idx / len(train_loader)
                     )
                 )
+                
+
+                
                 # Amor For Tensorboard display
                 if loss_mel > 75:
                     loss_mel = 75
                 if loss_kl > 9:
                     loss_kl = 9
 
+                # logger.info([global_step, lr])
+                # logger.info(
+                #     f"loss_disc={loss_disc:.3f}, loss_gen={loss_gen:.3f}, loss_fm={loss_fm:.3f},loss_mel={loss_mel:.3f}, loss_kl={loss_kl:.3f}"
+                # )
                 logger.info([global_step, lr])
                 logger.info(
-                    f"loss_disc={loss_disc:.3f}, loss_gen={loss_gen:.3f}, loss_fm={loss_fm:.3f},loss_mel={loss_mel:.3f}, loss_kl={loss_kl:.3f}"
-                )
+                    f"loss_disc={moving_avg_loss_disc.avg:.3f}, loss_gen={moving_avg_loss_gen.avg:.3f}, "
+                    f"loss_fm={loss_fm:.3f}, loss_mel={loss_mel:.3f}, loss_kl={loss_kl:.3f}"
+                )                
+                
                 scalar_dict = {
                     "loss/g/total": loss_gen_all,
                     "loss/d/total": loss_disc,
@@ -659,7 +719,9 @@ def train_and_evaluate(
         os._exit(2333333)
         
         
-    return loss_disc, loss_gen_all      # ABUS
+    return moving_avg_loss_disc.avg, moving_avg_loss_gen.avg      # ABUS
+
+
 
 
 if __name__ == "__main__":
