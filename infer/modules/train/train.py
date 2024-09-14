@@ -182,6 +182,9 @@ def run(rank, n_gpus, hps, logger: logging.Logger):
     net_d = MultiPeriodDiscriminator(hps.model.use_spectral_norm)
     if torch.cuda.is_available():
         net_d = net_d.cuda(rank)
+        
+        
+        
     optim_g = torch.optim.AdamW(
         net_g.parameters(),
         hps.train.learning_rate,
@@ -194,6 +197,29 @@ def run(rank, n_gpus, hps, logger: logging.Logger):
         betas=hps.train.betas,
         eps=hps.train.eps,
     )
+    
+    # no_decay = ['bias', 'LayerNorm.weight']
+    # optimizer_grouped_parameters = [
+    #     {'params': [p for n, p in net_g.named_parameters() if not any(nd in n for nd in no_decay)],
+    #      'weight_decay': 0.01},
+    #     {'params': [p for n, p in net_g.named_parameters() if any(nd in n for nd in no_decay)],
+    #      'weight_decay': 0.0}
+    # ]    
+    
+    # # Initialize AdamW optimizer
+    # optim_g = torch.optim.AdamW(
+    #     optimizer_grouped_parameters,
+    #     lr=hps.train.learning_rate,
+    #     betas=hps.train.betas,
+    #     eps=hps.train.eps,
+    # )    
+    # optim_d = torch.optim.AdamW(
+    #     optimizer_grouped_parameters,
+    #     lr=hps.train.learning_rate,
+    #     betas=hps.train.betas,
+    #     eps=hps.train.eps,
+    # )        
+    
     # net_g = DDP(net_g, device_ids=[rank], find_unused_parameters=True)
     # net_d = DDP(net_d, device_ids=[rank], find_unused_parameters=True)
     if hasattr(torch, "xpu") and torch.xpu.is_available():
@@ -264,21 +290,22 @@ def run(rank, n_gpus, hps, logger: logging.Logger):
     scheduler_g = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optim_g,
         mode='min',
-        factor=0.5,
-        patience=5,
-        verbose=True
+        factor=0.75,
+        patience=100,
+        verbose=True,
+        min_lr=1e-9
     )
 
     # Discriminator scheduler
     scheduler_d = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optim_d,
         mode='min',
-        factor=0.5,
-        patience=5,
-        verbose=True
+        factor=0.75,
+        patience=100,
+        verbose=True,
+        min_lr=1e-9
     )    
-    
-    
+     
     
 
     scaler = GradScaler(enabled=hps.train.fp16_run)
