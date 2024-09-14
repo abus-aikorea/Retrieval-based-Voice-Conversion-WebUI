@@ -523,10 +523,10 @@ def train_and_evaluate(
                     y_d_hat_r, y_d_hat_g
                 )
             
-            # Gradient accumulation for larger effective batch size - ABUS
-            accumulation_steps = n_gpus  # Adjust this value based on your GPU memory
-            loss_disc = loss_disc / accumulation_steps
-            loss_gen_all = loss_gen_all / accumulation_steps
+        # Gradient accumulation for larger effective batch size - ABUS
+        accumulation_steps = n_gpus  # Adjust this value based on your GPU memory
+        loss_disc = loss_disc / accumulation_steps
+
                 
         # Discriminator update - ABUS        
         optim_d.zero_grad()
@@ -552,6 +552,9 @@ def train_and_evaluate(
                 loss_fm = feature_loss(fmap_r, fmap_g)
                 loss_gen, losses_gen = generator_loss(y_d_hat_g)
                 loss_gen_all = loss_gen + loss_fm + loss_mel + loss_kl
+        
+        
+        loss_gen_all = loss_gen_all / accumulation_steps        
         
         # Generator update - ABUS
         optim_g.zero_grad()
