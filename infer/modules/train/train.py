@@ -290,7 +290,7 @@ def run(rank, n_gpus, hps, logger: logging.Logger):
     scheduler_g = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optim_g,
         mode='min',
-        factor=0.75,
+        factor=0.5,
         patience=100,
         verbose=True,
         min_lr=1e-9
@@ -300,7 +300,7 @@ def run(rank, n_gpus, hps, logger: logging.Logger):
     scheduler_d = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optim_d,
         mode='min',
-        factor=0.75,
+        factor=0.5,
         patience=100,
         verbose=True,
         min_lr=1e-9
@@ -537,7 +537,7 @@ def train_and_evaluate(
             # Generator
             y_d_hat_r, y_d_hat_g, fmap_r, fmap_g = net_d(wave, y_hat)
             with autocast(enabled=False):
-                loss_mel = F.l1_loss(y_mel, y_hat_mel) * hps.train.c_mel
+                loss_mel = F.l1_loss(torch.log1p(y_mel), torch.log1p(y_hat_mel)) * hps.train.c_mel
                 loss_kl = kl_loss(z_p, logs_q, m_p, logs_p, z_mask) * hps.train.c_kl
                 loss_fm = feature_loss(fmap_r, fmap_g)
                 loss_gen, losses_gen = generator_loss(y_d_hat_g)
