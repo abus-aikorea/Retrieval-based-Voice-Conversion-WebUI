@@ -13,7 +13,7 @@
     "init_lr_ratio": 1,
     "warmup_epochs": 500,   
     "c_mel": 20.0,
-    "c_kl": 10.0             
+    "c_kl": 5.0             
   },
   "data": {
     "max_wav_value": 32768.0,
