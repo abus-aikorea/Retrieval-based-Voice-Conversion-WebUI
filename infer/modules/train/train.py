@@ -550,12 +550,7 @@ def train_and_evaluate(
                 
                 # ABUS
                 loss_gen_all = loss_gen + loss_fm + loss_mel + loss_kl
-                # loss_gen_all = (
-                #     1.0 * loss_gen +
-                #     1.0 * loss_fm + 
-                #     1.0 * loss_mel +
-                #     1.0 * loss_kl 
-                # )
+
                 
         optim_g.zero_grad()
         scaler.scale(loss_gen_all).backward()
