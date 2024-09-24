@@ -549,13 +549,13 @@ def train_and_evaluate(
                 loss_gen, losses_gen = generator_loss(y_d_hat_g)
                 
                 # ABUS
-                # loss_gen_all = loss_gen + loss_fm + loss_mel + loss_kl
-                loss_gen_all = (
-                    1.0 * loss_gen +
-                    1.0 * loss_fm + 
-                    1.0 * min(loss_mel, 75) + # loss_mel에 대한 클리핑 추가
-                    1.0 * min(loss_kl, 90) # loss_kl에 대한 클리핑 추가
-                )
+                loss_gen_all = loss_gen + loss_fm + loss_mel + loss_kl
+                # loss_gen_all = (
+                #     1.0 * loss_gen +
+                #     1.0 * loss_fm + 
+                #     1.0 * loss_mel +
+                #     1.0 * loss_kl 
+                # )
                 
         optim_g.zero_grad()
         scaler.scale(loss_gen_all).backward()
