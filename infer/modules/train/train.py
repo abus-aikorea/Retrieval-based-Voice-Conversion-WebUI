@@ -184,18 +184,20 @@ def run(rank, n_gpus, hps, logger: logging.Logger):
         net_d = net_d.cuda(rank)
         
         
-        
+    # ABUS    
     optim_g = torch.optim.AdamW(
         net_g.parameters(),
         hps.train.learning_rate,
         betas=hps.train.betas,
         eps=hps.train.eps,
+        weight_decay=1e-6  # L2 정규화 추가
     )
     optim_d = torch.optim.AdamW(
         net_d.parameters(),
         hps.train.learning_rate,
         betas=hps.train.betas,
         eps=hps.train.eps,
+        weight_decay=1e-6  # L2 정규화 추가
     )
     
     # no_decay = ['bias', 'LayerNorm.weight']
@@ -290,8 +292,8 @@ def run(rank, n_gpus, hps, logger: logging.Logger):
     scheduler_g = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optim_g,
         mode='min',
-        factor=0.5,
-        patience=100,
+        factor=0.7,
+        patience=50,
         verbose=True,
         min_lr=1e-9
     )
@@ -300,8 +302,8 @@ def run(rank, n_gpus, hps, logger: logging.Logger):
     scheduler_d = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optim_d,
         mode='min',
-        factor=0.5,
-        patience=100,
+        factor=0.7,
+        patience=50,
         verbose=True,
         min_lr=1e-9
     )    
@@ -530,14 +532,18 @@ def train_and_evaluate(
         optim_d.zero_grad()
         scaler.scale(loss_disc).backward()
         scaler.unscale_(optim_d)
-        grad_norm_d = commons.clip_grad_value_(net_d.parameters(), None)
+        
+        # ABUS
+        # grad_norm_d = commons.clip_grad_value_(net_d.parameters(), None)
+        grad_norm_d = torch.nn.utils.clip_grad_norm_(net_d.parameters(), max_norm=1.0)
+        
         scaler.step(optim_d)
 
         with autocast(enabled=hps.train.fp16_run):
             # Generator
             y_d_hat_r, y_d_hat_g, fmap_r, fmap_g = net_d(wave, y_hat)
             with autocast(enabled=False):
-                loss_mel = F.l1_loss(torch.log1p(y_mel), torch.log1p(y_hat_mel)) * hps.train.c_mel
+                loss_mel = F.l1_loss(y_mel, y_hat_mel) * hps.train.c_mel
                 loss_kl = kl_loss(z_p, logs_q, m_p, logs_p, z_mask) * hps.train.c_kl
                 loss_fm = feature_loss(fmap_r, fmap_g)
                 loss_gen, losses_gen = generator_loss(y_d_hat_g)
@@ -545,7 +551,11 @@ def train_and_evaluate(
         optim_g.zero_grad()
         scaler.scale(loss_gen_all).backward()
         scaler.unscale_(optim_g)
-        grad_norm_g = commons.clip_grad_value_(net_g.parameters(), None)
+        
+        # ABUS
+        # grad_norm_g = commons.clip_grad_value_(net_g.parameters(), None)
+        grad_norm_g = torch.nn.utils.clip_grad_norm_(net_g.parameters(), max_norm=1.0)
+        
         scaler.step(optim_g)
         scaler.update()
 
