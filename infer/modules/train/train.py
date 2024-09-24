@@ -547,7 +547,16 @@ def train_and_evaluate(
                 loss_kl = kl_loss(z_p, logs_q, m_p, logs_p, z_mask) * hps.train.c_kl
                 loss_fm = feature_loss(fmap_r, fmap_g)
                 loss_gen, losses_gen = generator_loss(y_d_hat_g)
-                loss_gen_all = loss_gen + loss_fm + loss_mel + loss_kl
+                
+                # ABUS
+                # loss_gen_all = loss_gen + loss_fm + loss_mel + loss_kl
+                loss_gen_all = (
+                    1.0 * loss_gen +
+                    1.0 * loss_fm + 
+                    1.0 * min(loss_mel, 75) + # loss_mel에 대한 클리핑 추가
+                    1.0 * min(loss_kl, 90) # loss_kl에 대한 클리핑 추가
+                )
+                
         optim_g.zero_grad()
         scaler.scale(loss_gen_all).backward()
         scaler.unscale_(optim_g)
@@ -570,8 +579,8 @@ def train_and_evaluate(
                 # Amor For Tensorboard display
                 if loss_mel > 75:
                     loss_mel = 75
-                if loss_kl > 9:
-                    loss_kl = 9
+                if loss_kl > 90:
+                    loss_kl = 90
 
                 logger.info([global_step, lr])
                 logger.info(
