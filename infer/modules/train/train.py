@@ -190,14 +190,14 @@ def run(rank, n_gpus, hps, logger: logging.Logger):
         hps.train.learning_rate,
         betas=hps.train.betas,
         eps=hps.train.eps,
-        weight_decay=1e-4  # L2 정규화 추가
+        # weight_decay=1e-4  # L2 정규화 추가
     )
     optim_d = torch.optim.AdamW(
         net_d.parameters(),
         hps.train.learning_rate,
         betas=hps.train.betas,
         eps=hps.train.eps,
-        weight_decay=1e-4  # L2 정규화 추가
+        # weight_decay=1e-4  # L2 정규화 추가
     )
     
     # no_decay = ['bias', 'LayerNorm.weight']
@@ -292,20 +292,20 @@ def run(rank, n_gpus, hps, logger: logging.Logger):
     scheduler_g = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optim_g,
         mode='min',
-        factor=0.9,
-        patience=20,
+        factor=0.5,
+        patience=100,
         verbose=True,
-        min_lr=1e-8
+        min_lr=1e-10
     )
 
     # Discriminator scheduler
     scheduler_d = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optim_d,
         mode='min',
-        factor=0.9,
-        patience=20,
+        factor=0.5,
+        patience=100,
         verbose=True,
-        min_lr=1e-8
+        min_lr=1e-10
     )    
      
     
@@ -534,8 +534,8 @@ def train_and_evaluate(
         scaler.unscale_(optim_d)
         
         # ABUS
-        # grad_norm_d = commons.clip_grad_value_(net_d.parameters(), None)
-        grad_norm_d = torch.nn.utils.clip_grad_norm_(net_d.parameters(), max_norm=20.0) # 5.0 ~ 25.0
+        grad_norm_d = commons.clip_grad_value_(net_d.parameters(), None)
+        # grad_norm_d = torch.nn.utils.clip_grad_norm_(net_d.parameters(), max_norm=20.0) # 5.0 ~ 25.0
         
         scaler.step(optim_d)
 
@@ -557,8 +557,8 @@ def train_and_evaluate(
         scaler.unscale_(optim_g)
         
         # ABUS
-        # grad_norm_g = commons.clip_grad_value_(net_g.parameters(), None)
-        grad_norm_g = torch.nn.utils.clip_grad_norm_(net_g.parameters(), max_norm=120.0)  # 15.0 ~ 150.0
+        grad_norm_g = commons.clip_grad_value_(net_g.parameters(), None)
+        # grad_norm_g = torch.nn.utils.clip_grad_norm_(net_g.parameters(), max_norm=120.0)  # 15.0 ~ 150.0
         
         scaler.step(optim_g)
         scaler.update()
