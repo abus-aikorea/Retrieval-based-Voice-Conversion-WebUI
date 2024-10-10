@@ -1294,7 +1294,7 @@ with gr.Blocks(title="RVC WebUI") as app:
                 with gr.Row():
                     save_epoch10 = gr.Slider(
                         minimum=1,
-                        maximum=5000,     # ABUS
+                        maximum=10000,     # ABUS
                         step=1,
                         label=i18n("保存频率save_every_epoch"),
                         value=1000,
@@ -1302,7 +1302,7 @@ with gr.Blocks(title="RVC WebUI") as app:
                     )
                     total_epoch11 = gr.Slider(
                         minimum=2,
-                        maximum=50000,  # ABUS
+                        maximum=100000,  # ABUS
                         step=1,
                         label=i18n("总训练轮数total_epoch"),
                         value=40000,
