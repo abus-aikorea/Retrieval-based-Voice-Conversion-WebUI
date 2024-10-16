@@ -293,7 +293,7 @@ def run(rank, n_gpus, hps, logger: logging.Logger):
         optim_g,
         mode='min',
         factor=0.5,
-        patience=100,
+        patience=1000,
         verbose=True,
         min_lr=1e-10
     )
@@ -303,7 +303,7 @@ def run(rank, n_gpus, hps, logger: logging.Logger):
         optim_d,
         mode='min',
         factor=0.5,
-        patience=100,
+        patience=1000,
         verbose=True,
         min_lr=1e-10
     )    
@@ -572,10 +572,10 @@ def train_and_evaluate(
                     )
                 )
                 # Amor For Tensorboard display
-                if loss_mel > 75:
-                    loss_mel = 75
-                if loss_kl > 90:
-                    loss_kl = 90
+                # if loss_mel > 75:
+                #     loss_mel = 75
+                # if loss_kl > 90:
+                #     loss_kl = 90
 
                 logger.info([global_step, lr])
                 logger.info(
